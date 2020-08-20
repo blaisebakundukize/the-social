@@ -1,8 +1,10 @@
-import User from "../models/user.model";
 import extend from "lodash/extend";
-import errorHandler from "./../helpers/dbErrorHandler";
 import formidable from "formidable";
 import fs from "fs";
+
+import User from "../models/user.model";
+import errorHandler from "./../helpers/dbErrorHandler";
+import defaultProfileImage from "./../../client/assets/images/profile-pic.png";
 
 const create = async (req, res) => {
   const user = new User(req.body);
@@ -94,4 +96,25 @@ const remove = async (req, res) => {
   }
 };
 
-export default { create, list, userById, read, update, remove };
+const photo = (req, res, next) => {
+  if (req.profile.photo.data) {
+    res.set("Content-Type", req.profile.photo.contentType);
+    return res.status(200).send(req.profile.photo.data);
+  }
+  next();
+};
+
+const defaultPhoto = (req, res) => {
+  return res.sendFile(process.cwd() + defaultProfileImage);
+};
+
+export default {
+  create,
+  list,
+  userById,
+  read,
+  update,
+  remove,
+  photo,
+  defaultPhoto,
+};
