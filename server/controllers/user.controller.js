@@ -1,6 +1,8 @@
 import User from "../models/user.model";
 import extend from "lodash/extend";
 import errorHandler from "./../helpers/dbErrorHandler";
+import formidable from "formidable";
+import fs from "fs";
 
 const create = async (req, res) => {
   const user = new User(req.body);
@@ -50,19 +52,32 @@ const read = (req, res) => {
 };
 
 const update = async (req, res) => {
-  try {
+  let form = new formidable.IncomingForm(); // formidable allows the sever to read the multipart form data and provide access to fields and files
+  form.keepExtensions = true;
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      return res.status(400).json({
+        error: "Photo could not be uploaded",
+      });
+    }
     let user = req.profile;
-    user = extend(user, req.body); // extend and merge the changes from request body to update the user data.
+    user = extend(user, fields); // extend and merge the changes from request body to update the user data.
     user.updated = Date.now();
-    await user.save();
-    user.hashed_password = undefined;
-    user.salt = undefined;
-    res.status(200).json(user);
-  } catch (err) {
-    return res.status(400).json({
-      error: errorHandler.getErrorMessage(err),
-    });
-  }
+    if (files.photo) {
+      user.photo.data = fs.readFileSync(files.photo.path);
+      user.photo.contentType = files.photo.type;
+    }
+    try {
+      await user.save();
+      user.hashed_password = undefined;
+      user.salt = undefined;
+      res.status(200).json(user);
+    } catch (err) {
+      return res.status(400).json({
+        error: errorHandler.getErrorMessage(err),
+      });
+    }
+  });
 };
 
 const remove = async (req, res) => {
