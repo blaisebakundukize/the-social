@@ -43,6 +43,7 @@ export default function EditProfile({ match }) {
     name: "",
     password: "",
     email: "",
+    about: "",
     open: false,
     error: "",
     redirectToProfile: false,
@@ -75,6 +76,7 @@ export default function EditProfile({ match }) {
     const user = {
       name: values.name || undefined,
       email: values.email || undefined,
+      about: values.about || undefined,
       password: values.password || undefined,
     };
     update(
@@ -122,6 +124,17 @@ export default function EditProfile({ match }) {
           className={classes.textField}
           value={values.email}
           onChange={handleChange("email")}
+          margin='normal'
+        />
+        <br />
+        <TextField
+          id='multiline-flexible'
+          label='About'
+          multiline
+          rows='2'
+          className={classes.textField}
+          value={values.about}
+          onChange={handleChange("about")}
           margin='normal'
         />
         <br />
