@@ -10,7 +10,6 @@ import Avatar from "@material-ui/core/Avatar";
 import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
 import Edit from "@material-ui/icons/Edit";
-import Person from "@material-ui/icons/Person";
 import Divider from "@material-ui/core/Divider";
 import DeleteUser from "./DeleteUser";
 import auth from "./../auth/auth-helper";
@@ -25,15 +24,22 @@ const useStyles = makeStyles((theme) => ({
     marginTop: theme.spacing(5),
   }),
   title: {
-    marginTop: theme.spacing(3),
+    margin: `${theme.spacing(2)}px ${theme.spacing(1)}px 0`,
     color: theme.palette.protectedTitle,
+  },
+  bigAvatar: {
+    width: 60,
+    height: 60,
+    margin: 10,
   },
 }));
 
 export default function Profile({ match }) {
   const classes = useStyles();
-  const [user, setUser] = useState({});
-  const [redirectToSignin, setRedirectToSignin] = useState(false);
+  const [values, setValues] = useState({
+    user: {},
+    redirectToSignin: false,
+  });
   const jwt = auth.isAuthenticated();
 
   useEffect(() => {
@@ -50,7 +56,7 @@ export default function Profile({ match }) {
       if (data && data.error) {
         setRedirectToSignin(true);
       } else {
-        setUser(data);
+        setValues({ ...values, user: data });
       }
     });
 
@@ -59,7 +65,11 @@ export default function Profile({ match }) {
     };
   }, [match.params.userId]);
 
-  if (redirectToSignin) {
+  // Added a time value to the photo URL to bypass the browser's default image caching behavior after the photo is updated.
+  const photoUrl = values.user._id
+    ? `/api/users/photo/${values.user._id}?${new Date().getTime()}`
+    : `/api/users/defaultphoto`;
+  if (values.redirectToSignin) {
     return <Redirect to='/signin' />;
   }
   return (
@@ -70,30 +80,31 @@ export default function Profile({ match }) {
       <List dense>
         <ListItem>
           <ListItemAvatar>
-            <Avatar>
-              <Person />
-            </Avatar>
+            <Avatar src={photoUrl} className={classes.bigAvatar}></Avatar>
           </ListItemAvatar>
-          <ListItemText primary={user.name} secondary={user.email} />{" "}
+          <ListItemText
+            primary={values.user.name}
+            secondary={values.user.email}
+          />{" "}
           {auth.isAuthenticated().user &&
-            auth.isAuthenticated().user._id == user._id && (
+            auth.isAuthenticated().user._id == values.user._id && (
               <ListItemSecondaryAction>
-                <Link to={"/user/edit/" + user._id}>
+                <Link to={"/user/edit/" + values.user._id}>
                   <IconButton aria-label='Edit' color='primary'>
                     <Edit />
                   </IconButton>
                 </Link>
-                <DeleteUser userId={user._id} />
+                <DeleteUser userId={values.user._id} />
               </ListItemSecondaryAction>
             )}
         </ListItem>
         <Divider />
         <ListItem>
-          <ListItemText primary={user.about} />
-        </ListItem>
-        <ListItem>
           <ListItemText
-            primary={"Joined: " + new Date(user.created).toDateString()}
+            primary={values.user.about}
+            secondary={
+              "Joined: " + new Date(values.user.created).toDateString()
+            }
           />
         </ListItem>
       </List>
