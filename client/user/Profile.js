@@ -11,10 +11,12 @@ import IconButton from "@material-ui/core/IconButton";
 import Typography from "@material-ui/core/Typography";
 import Edit from "@material-ui/icons/Edit";
 import Divider from "@material-ui/core/Divider";
+import { Redirect, Link } from "react-router-dom";
+
 import DeleteUser from "./DeleteUser";
 import auth from "./../auth/auth-helper";
 import { read } from "./api-user.js";
-import { Redirect, Link } from "react-router-dom";
+import FollowProfileButton from "./FollowProfileButton";
 
 const useStyles = makeStyles((theme) => ({
   root: theme.mixins.gutters({
@@ -39,6 +41,7 @@ export default function Profile({ match }) {
   const [values, setValues] = useState({
     user: {},
     redirectToSignin: false,
+    following: false,
   });
   const jwt = auth.isAuthenticated();
 
@@ -54,9 +57,10 @@ export default function Profile({ match }) {
       signal
     ).then((data) => {
       if (data && data.error) {
-        setRedirectToSignin(true);
+        setValues({ ...values, redirectToSignin: true });
       } else {
-        setValues({ ...values, user: data });
+        let following = checkFollow(data);
+        setValues({ ...values, user: data, following: following });
       }
     });
 
@@ -64,6 +68,31 @@ export default function Profile({ match }) {
       abortController.abort();
     };
   }, [match.params.userId]);
+
+  const checkFollow = (user) => {
+    const match = user.followers.some((follower) => {
+      return follower._id === jwt.user._id;
+    });
+    return match;
+  };
+
+  const clickFollowButton = (callApi) => {
+    callApi(
+      {
+        userId: jwt.user._id,
+      },
+      {
+        t: jwt.token,
+      },
+      values.user._id
+    ).then((data) => {
+      if (data.error) {
+        setValues({ ...values, error: data.error });
+      } else {
+        setValues({ ...values, user: data, following: !values.following });
+      }
+    });
+  };
 
   // Added a time value to the photo URL to bypass the browser's default image caching behavior after the photo is updated.
   const photoUrl = values.user._id
@@ -87,16 +116,21 @@ export default function Profile({ match }) {
             secondary={values.user.email}
           />{" "}
           {auth.isAuthenticated().user &&
-            auth.isAuthenticated().user._id == values.user._id && (
-              <ListItemSecondaryAction>
-                <Link to={"/user/edit/" + values.user._id}>
-                  <IconButton aria-label='Edit' color='primary'>
-                    <Edit />
-                  </IconButton>
-                </Link>
-                <DeleteUser userId={values.user._id} />
-              </ListItemSecondaryAction>
-            )}
+          auth.isAuthenticated().user._id == values.user._id ? (
+            <ListItemSecondaryAction>
+              <Link to={"/user/edit/" + values.user._id}>
+                <IconButton aria-label='Edit' color='primary'>
+                  <Edit />
+                </IconButton>
+              </Link>
+              <DeleteUser userId={values.user._id} />
+            </ListItemSecondaryAction>
+          ) : (
+            <FollowProfileButton
+              following={values.following}
+              onButtonClick={clickFollowButton}
+            />
+          )}
         </ListItem>
         <Divider />
         <ListItem>
