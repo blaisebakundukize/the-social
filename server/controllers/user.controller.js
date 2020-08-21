@@ -33,7 +33,10 @@ const list = async (req, res) => {
 
 const userById = async (req, res, next, id) => {
   try {
-    let user = await User.findById(id);
+    let user = await User.findById(id)
+      .populate("following", "_id name")
+      .populate("followers", "_id name")
+      .exec();
     if (!user)
       return res.status("404").json({
         error: "User not found",
@@ -108,6 +111,39 @@ const defaultPhoto = (req, res) => {
   return res.sendFile(process.cwd() + defaultProfileImage);
 };
 
+const addFollowing = async (req, res, next) => {
+  try {
+    await User.findByIdAndUpdate(req.body.userId, {
+      $push: { following: req.body.followId },
+    });
+    next();
+  } catch (err) {
+    return res.status(400).json({
+      error: errorHandler.getErrorMessage(err),
+    });
+  }
+};
+
+const addFollower = async (req, res) => {
+  try {
+    let result = await User.findByIdAndUpdate(
+      req.body.followId,
+      { $push: { followers: req.body.userId } },
+      { new: true }
+    )
+      .populate("following", "_id name")
+      .populate("followers", "_id name")
+      .exec();
+    result.hashed_password = undefined;
+    result.salt = undefined;
+    res.status(200).json(result);
+  } catch (error) {
+    return res.status(400).json({
+      error: errorHandler.getErrorMessage(err),
+    });
+  }
+};
+
 export default {
   create,
   list,
@@ -117,4 +153,6 @@ export default {
   remove,
   photo,
   defaultPhoto,
+  addFollowing,
+  addFollower,
 };
