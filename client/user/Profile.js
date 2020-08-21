@@ -17,6 +17,7 @@ import DeleteUser from "./DeleteUser";
 import auth from "./../auth/auth-helper";
 import { read } from "./api-user.js";
 import FollowProfileButton from "./FollowProfileButton";
+import ProfileTabs from "./ProfileTabs";
 
 const useStyles = makeStyles((theme) => ({
   root: theme.mixins.gutters({
@@ -39,7 +40,7 @@ const useStyles = makeStyles((theme) => ({
 export default function Profile({ match }) {
   const classes = useStyles();
   const [values, setValues] = useState({
-    user: {},
+    user: { following: [], followers: [] },
     redirectToSignin: false,
     following: false,
   });
@@ -142,6 +143,7 @@ export default function Profile({ match }) {
           />
         </ListItem>
       </List>
+      <ProfileTabs user={values.user} />
     </Paper>
   );
 }
