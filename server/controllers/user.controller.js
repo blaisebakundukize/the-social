@@ -159,7 +159,7 @@ const removeFollowing = async (req, res, next) => {
 
 const removeFollower = async (req, res) => {
   try {
-    let result = User.findByIdAndUpdate(
+    let result = await User.findByIdAndUpdate(
       req.body.unfollowId,
       { $pull: { followers: req.body.userId } },
       { new: true }
