@@ -21,6 +21,8 @@ const create = (req, res, next) => {
     }
     try {
       let result = await post.save();
+      result.postedBy.hashed_password = undefined;
+      result.postedBy.salt = undefined;
       res.status(201).json(result);
     } catch (err) {
       return res.status(400).json({
