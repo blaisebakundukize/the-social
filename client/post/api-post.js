@@ -1,3 +1,19 @@
+const create = async (params, credentials, post) => {
+  try {
+    let response = await fetch("/api/posts/new/" + params.userId, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        Authorization: "Bearer " + credentials.t,
+      },
+      body: post,
+    });
+    return await response.json();
+  } catch (err) {
+    console.log(err);
+  }
+};
+
 const remove = async (params, credentials) => {
   try {
     let response = await fetch("/api/posts/" + params.postId, {
@@ -47,3 +63,5 @@ const unlike = async (params, credentials, postId) => {
     console.log(err);
   }
 };
+
+export { create, remove, like, unlike };
