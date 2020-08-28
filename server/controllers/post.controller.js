@@ -111,6 +111,23 @@ const remove = async (req, res) => {
   }
 };
 
+const like = async (req, res) => {
+  try {
+    let result = await Post.findByIdAndUpdate(
+      req.body.postId,
+      {
+        $push: { likes: req.body.userId },
+      },
+      { new: true }
+    );
+    res.json(result);
+  } catch (err) {
+    return res.status(400).json({
+      error: errorHandler.getErrorMessage(err),
+    });
+  }
+};
+
 export default {
   create,
   listNewsFeed,
@@ -119,4 +136,5 @@ export default {
   photo,
   isPoster,
   remove,
+  like,
 };
