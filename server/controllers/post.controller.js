@@ -89,4 +89,34 @@ const photo = (req, res, next) => {
   return res.send(req.post.photo.data);
 };
 
-export default { create, listNewsFeed, listByUser, postById, photo };
+const isPoster = (req, res, next) => {
+  let isPoster = req.post && req.auth && req.post.postedBy._id == req.auth._id;
+  if (!isPoster) {
+    return res.status(403).json({
+      error: "User is not authorized",
+    });
+  }
+  next();
+};
+
+const remove = async (req, res) => {
+  let post = req.post;
+  try {
+    let deletePost = await post.remove();
+    res.json(deletePost);
+  } catch (err) {
+    return res.status(400).json({
+      error: errorHandler.getErrorMessage(err),
+    });
+  }
+};
+
+export default {
+  create,
+  listNewsFeed,
+  listByUser,
+  postById,
+  photo,
+  isPoster,
+  remove,
+};

@@ -19,6 +19,10 @@ router
   .route("/api/posts/by/:userId")
   .get(authCtrl.requireSignin, postCtrl.listByUser);
 
+router
+  .route("/api/posts/:postId")
+  .delete(authCtrl.requireSignin, postCtrl.isPoster, postCtrl.remove);
+
 router.param("userId", userCtrl.userById);
 router.param("postId", postCtrl.postById);
 
