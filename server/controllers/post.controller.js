@@ -64,4 +64,27 @@ const listByUser = async (req, res) => {
   }
 };
 
-export default { create, listNewsFeed, listByUser };
+const postById = async (req, res, next, id) => {
+  try {
+    let post = await Post.findById(id).populate("postedBy", "_id name").exec();
+    if (!post) {
+      return res.status("404").json({
+        error: "Post not found",
+      });
+    }
+    req.post = post;
+    next();
+  } catch (err) {
+    console.log(err.message);
+    return res.status("400").json({
+      error: "Could not retrieve use post",
+    });
+  }
+};
+
+const photo = (req, res, next) => {
+  res.set("Content-Type", req.post.photo.contentType);
+  return res.send(req.post.photo.data);
+};
+
+export default { create, listNewsFeed, listByUser, postById, photo };

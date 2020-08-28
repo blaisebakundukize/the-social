@@ -9,6 +9,8 @@ router
   .route("/api/posts/new/:userId")
   .post(authCtrl.requireSignin, postCtrl.create);
 
+router.route("/api/posts/photo/:postId").get(postCtrl.photo);
+
 router
   .route("/api/posts/feed/:userId")
   .get(authCtrl.requireSignin, postCtrl.listNewsFeed);
@@ -18,5 +20,6 @@ router
   .get(authCtrl.requireSignin, postCtrl.listByUser);
 
 router.param("userId", userCtrl.userById);
+router.param("postId", postCtrl.postById);
 
 export default router;
