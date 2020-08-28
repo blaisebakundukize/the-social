@@ -18,6 +18,7 @@ import auth from "./../auth/auth-helper";
 import { read } from "./api-user.js";
 import FollowProfileButton from "./FollowProfileButton";
 import ProfileTabs from "./ProfileTabs";
+import { listByUser } from "./../post/api-post.js";
 
 const useStyles = makeStyles((theme) => ({
   root: theme.mixins.gutters({
@@ -44,6 +45,7 @@ export default function Profile({ match }) {
     redirectToSignin: false,
     following: false,
   });
+  const [posts, setPosts] = useState([]);
   const jwt = auth.isAuthenticated();
 
   useEffect(() => {
@@ -62,6 +64,7 @@ export default function Profile({ match }) {
       } else {
         let following = checkFollow(data);
         setValues({ ...values, user: data, following: following });
+        loadPosts(data._id);
       }
     });
 
@@ -95,13 +98,39 @@ export default function Profile({ match }) {
     });
   };
 
+  const loadPosts = (user) => {
+    listByUser(
+      {
+        userId: user,
+      },
+      {
+        t: jwt.token,
+      }
+    ).then((data) => {
+      if (data.error) {
+        console.log(data.error);
+      } else {
+        setPosts(data);
+      }
+    });
+  };
+
+  const removePost = (post) => {
+    const updatedPosts = posts;
+    const index = updatedPosts.indexOf(post);
+    updatedPosts.splice(index, 1);
+    setPosts(updatedPosts);
+  };
+
   // Added a time value to the photo URL to bypass the browser's default image caching behavior after the photo is updated.
   const photoUrl = values.user._id
     ? `/api/users/photo/${values.user._id}?${new Date().getTime()}`
     : `/api/users/defaultphoto`;
+
   if (values.redirectToSignin) {
     return <Redirect to='/signin' />;
   }
+
   return (
     <Paper className={classes.root} elevation={4}>
       <Typography variant='h6' className={classes.title}>
@@ -143,7 +172,11 @@ export default function Profile({ match }) {
           />
         </ListItem>
       </List>
-      <ProfileTabs user={values.user} />
+      <ProfileTabs
+        user={values.user}
+        posts={posts}
+        removePostUpdate={removePost}
+      />
     </Paper>
   );
 }
