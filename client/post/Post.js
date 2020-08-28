@@ -17,6 +17,7 @@ import { Link } from "react-router-dom";
 
 import auth from "./../auth/auth-helper";
 import { remove, like, unlike } from "./api-post.js";
+import Comments from "./Comments";
 
 const useStyles = makeStyles((theme) => ({
   card: {
@@ -58,6 +59,7 @@ const Post = (props) => {
   const [values, setValues] = useState({
     like: checkLike(props.post.likes),
     likes: props.post.likes.length,
+    comments: props.post.comments,
   });
 
   // useEffect(() => {
@@ -98,6 +100,10 @@ const Post = (props) => {
         props.onRemove(props.post);
       }
     });
+  };
+
+  const updateComments = (comments) => {
+    setValues({ ...values, comments: comments });
   };
 
   return (
@@ -163,6 +169,11 @@ const Post = (props) => {
         <span>{values.comments.length}</span>
       </CardActions>
       <Divider />
+      <Comments
+        postId={props.post._id}
+        comments={values.comments}
+        updateComments={updateComments}
+      />
     </Card>
   );
 };
